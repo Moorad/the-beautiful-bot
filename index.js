@@ -20,7 +20,7 @@ Canvas.registerFont('assets/SegoeUI.ttf', {
 Canvas.registerFont('assets/SegoeUIBold.ttf', {
 	family: 'segoeUIBold'
 });
-const prefix = 't$';
+const prefix = '$';
 const url = `mongodb://${process.env.dbUsername}:${process.env.dbPassword}@ds121295.mlab.com:21295/thebeautifulbot`;
 const dbName = 'thebeautifulbot';
 const {
@@ -527,13 +527,13 @@ function createUserCard(msg, id) {
 function format(number) {
 	return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 }
- 
+
 function recent(msg, user) {
 	request(`https://osu.ppy.sh/api/get_user_recent?k=${process.env.osuAPI}&u=${user}`, {
 		json: true
 	}, (err, res, body) => {
 		if (body.length == 0) {
-			errorMessage(msg, 4044);	
+			errorMessage(msg, 4044);
 			return;
 		}
 
@@ -551,7 +551,7 @@ function recent(msg, user) {
 				}
 
 				// the *entire* stdout and stderr (buffered)
-				var ppAndDiff = stdout.replace('\n','').split('$')
+				var ppAndDiff = stdout.replace('\n', '').split('$')
 				console.log(ppAndDiff)
 				console.log(`stdout: ${stdout}`);
 				console.log(`stderr: ${stderr}`);
@@ -575,7 +575,7 @@ function recent(msg, user) {
 				else if (body[0].rank.toLowerCase() == 'sh') colour = 12370112;
 				else if (body[0].rank.toLowerCase() == 'ss') colour = 15844367;
 				else if (body[0].rank.toLowerCase() == 'ssh') colour = 12370112;
-				
+
 
 
 				var accuracy = (50 * parseInt(body[0].count50) + 100 * parseInt(body[0].count100) + 300 * parseInt(body[0].count300)) / (300 * (parseInt(body[0].count50) + parseInt(body[0].count100) + parseInt(body[0].count300) + parseInt(body[0].countmiss)));
@@ -761,13 +761,82 @@ function checkUser(msg, data, callback) {
 }
 
 function getRepoData(msg) {
-	request({url:'https://api.github.com/repos/moorad/the-beautiful-bot/commits',headers:{'User-Agent':'Moorad'}}, (err,res,body) => {
+	request({
+		url: 'https://api.github.com/repos/moorad/the-beautiful-bot/commits',
+		headers: {
+			'User-Agent': 'Moorad'
+		}
+	}, (err, res, body) => {
 		body = JSON.parse(body)
-		for (var i = 0;i < 5;i++) {
-			msg.channel.send(`${i}. SHA:${body[i].sha}\nCommitter:${body[i].author.login}\nurl:${body[i]}.url`)
-		} 
+		msg.channel.send({
+			'embed': {
+				'title': 'Latest activity on The Beautiful Bot\'s Github repo',
+				'description': '[Github repository](https://github.com/Moorad/the-beautiful-bot)',
+				'color': 16580705,
+				'footer': {
+					'icon_url': 'https://cdn.discordapp.com/avatars/647218819865116674/30bf8360b8a5adef5a894d157e22dc34.png?size=128',
+					'text': 'Always Remember, The beautiful bot loves you <3'
+				},
+				'fields': [{
+						'name': '-',
+						'value': '**' + body[0].commit.message + '**\ncommit [' + body[0].sha.slice(0, 7) + '](' + body[0].html_url + ') by ' + body[0].committer.login + ' on ' + timeSince(Date.parse(body[0].commit.committer.date))
+					},
+					{
+						'name': '-',
+						'value': '**' + body[1].commit.message + '**\ncommit [' + body[1].sha.slice(0, 7) + '](' + body[1].html_url + ') by ' + body[1].committer.login + ' on ' + timeSince(Date.parse(body[1].commit.committer.date)),
+
+					},
+					{
+						'name': '-',
+						'value': '**' + body[2].commit.message + '**\ncommit [' + body[2].sha.slice(0, 7) + '](' + body[2].html_url + ') by ' + body[2].committer.login + ' on ' + timeSince(Date.parse(body[2].commit.committer.date)),
+
+					},
+					{
+						'name': '-',
+						'value': '**' + body[3].commit.message + '**\ncommit [' + body[3].sha.slice(0, 7) + '](' + body[3].html_url + ') by ' + body[3].committer.login + ' on ' + timeSince(Date.parse(body[3].commit.committer.date)),
+
+					},
+					{
+						'name': '-',
+						'value': '**' + body[4].commit.message + '**\ncommit [' + body[4].sha.slice(0, 7) + '](' + body[4].html_url + ') by ' + body[4].committer.login + ' on ' + timeSince(Date.parse(body[4].commit.committer.date)),
+
+					}
+				]
+			}
+		})
 	})
 }
+
+function timeSince(date) {
+
+	var seconds = Math.floor((new Date() - date) / 1000);
+
+	var interval = Math.floor(seconds / 31536000);
+
+	if (interval > 1) {
+		return interval + ' years';
+	}
+	interval = Math.floor(seconds / 2592000);
+	if (interval > 1) {
+		return interval + ' months';
+	}
+	interval = Math.floor(seconds / 86400);
+	if (interval > 1) {
+		return interval + ' days';
+	}
+	interval = Math.floor(seconds / 3600);
+	if (interval > 1) {
+		return interval + ' hours';
+	}
+	interval = Math.floor(seconds / 60);
+	if (interval > 1) {
+		return interval + ' minutes';
+	}
+	return Math.floor(seconds) + ' seconds';
+}
+var aDay = 24 * 60 * 60 * 1000;
+console.log(timeSince(new Date(Date.now() - aDay)));
+console.log(timeSince(new Date(Date.now() - aDay * 2)));
 
 function errorMessage(msg, errCode) {
 	if (errCode == 4041) {
@@ -778,7 +847,7 @@ function errorMessage(msg, errCode) {
 		msg.channel.send('**Unknown beatmap!** Sadly I couldn\'t find the map your are searching for :(, check if you spelled the name of the beatmap correctly');
 	} else if (errCode == 4043) {
 		console.log('Error 4043');
-		msg.channel.send('File is not recognised\nCheck if the file is uploaded coreectly, it is a json file and isn\'t corrupted');
+		msg.channel.send('File is not recognised\nCheck if the file is uploaded coreectly, it  is a json file and isn\'t corrupted');
 	} else if (errCode == 4044) {
 		console.log('Error 4044');
 		msg.channel.send('There were no recent plays in the last 24h or Invalid username\nCheck if you spelled the name correctly or click some circles :)');
